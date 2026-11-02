@@ -5,6 +5,8 @@ body {
   background: #f1f3f5;
   color: #212529;
 }
+
+/* ---------- Login ---------- */
 #login {
   max-width: 320px;
   margin: 15vh auto;
@@ -15,10 +17,12 @@ body {
   box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
 }
 #login input, #login button { width: 100%; margin-top: 10px; }
+
 input, button { padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ced4da; }
 button { background: #228be6; color: #fff; border: none; cursor: pointer; }
 button:hover { background: #1c7ed6; }
 
+/* ---------- Layout ---------- */
 #app { display: flex; flex-direction: column; height: 100vh; }
 header {
   display: flex;
@@ -29,13 +33,110 @@ header {
 }
 main { flex: 1; display: flex; min-height: 0; }
 #chat { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-#messages { flex: 1; overflow-y: auto; padding: 12px; }
-.msg { margin-bottom: 8px; padding: 8px 12px; background: #fff; border-radius: 10px; word-wrap: break-word; }
+#messages { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px; }
+
+/* ---------- Tabs ---------- */
+#tabs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px 0;
+  overflow-x: auto;
+  background: #f1f3f5;
+}
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  white-space: nowrap;
+  background: #dee2e6;
+  color: #343a40;
+  border-radius: 8px 8px 0 0;
+}
+.tab:hover { background: #ced4da; }
+.tab.active { background: #fff; color: #1c7ed6; font-weight: 600; }
+.tab.priv.active { color: #7048e8; }
+.tab .close { font-size: 16px; opacity: .6; }
+.tab .close:hover { opacity: 1; }
+.badge {
+  background: #fa5252;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0 6px;
+  font-size: 12px;
+}
+
+/* ---------- Messages ---------- */
+.msg {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: #fff;
+  border-radius: 10px;
+  word-wrap: break-word;
+  max-width: 100%;
+}
 .msg.me { background: #d0ebff; }
+.msg.priv { background: #e5dbff; }
+.msg.priv.me { background: #d0bfff; }
 .msg .meta { font-size: 12px; color: #868e96; }
 .sys { text-align: center; font-size: 13px; color: #868e96; margin: 6px 0; }
+
+/* ---------- Files in chat ---------- */
+.msg img.preview {
+  display: block;
+  width: 160px;
+  height: 120px;
+  object-fit: cover;
+  margin-top: 6px;
+  border-radius: 8px;
+  cursor: zoom-in;
+}
+.filecard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, .7);
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  color: #1c7ed6;
+  text-decoration: none;
+}
+.filecard .fname { flex: 1; word-break: break-all; }
+.filecard small { color: #868e96; white-space: nowrap; }
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .85);
+  cursor: zoom-out;
+}
+.lightbox img { max-width: 95vw; max-height: 95vh; }
+
+/* ---------- Message box ---------- */
 #msgForm { display: flex; gap: 8px; padding: 10px; background: #fff; }
-#msgInput { flex: 1; }
+#msgInput { flex: 1; min-width: 0; }
+#plusBtn {
+  width: 42px;
+  font-size: 24px;
+  line-height: 1;
+  padding: 0;
+  background: #868e96;
+}
+#plusBtn:hover { background: #495057; }
+#uploadStatus {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #fff3bf;
+}
+
+/* ---------- Sidebar ---------- */
 aside {
   width: 280px;
   padding: 12px;
@@ -48,12 +149,9 @@ aside ul { list-style: none; padding: 0; margin: 0; }
 aside li { padding: 6px 0; border-bottom: 1px solid #f1f3f5; font-size: 14px; word-break: break-all; }
 aside a { color: #1c7ed6; text-decoration: none; }
 aside small { color: #868e96; display: block; }
-progress { width: 100%; margin-top: 6px; }
-
-@media (max-width: 700px) {
-  main { flex-direction: column; }
-  aside { width: 100%; max-height: 40%; border-left: none; border-top: 1px solid #dee2e6; }
-}
+.hint { margin: 0 0 6px; font-size: 12px; color: #868e96; }
+li.clickable { cursor: pointer; color: #1c7ed6; }
+li.clickable:hover { background: #f1f3f5; }
 button.del {
   margin-top: 4px;
   padding: 4px 10px;
@@ -61,3 +159,9 @@ button.del {
   background: #fa5252;
 }
 button.del:hover { background: #e03131; }
+
+/* ---------- Small screens (keep this LAST) ---------- */
+@media (max-width: 700px) {
+  main { flex-direction: column; }
+  aside { width: 100%; max-height: 40%; border-left: none; border-top: 1px solid #dee2e6; }
+}

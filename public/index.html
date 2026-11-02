@@ -21,19 +21,20 @@
     </header>
     <main>
       <section id="chat">
+        <div id="tabs"></div>
         <div id="messages"></div>
+        <div id="uploadStatus" hidden></div>
         <form id="msgForm">
-          <input id="msgInput" autocomplete="off" placeholder="Type a message">
+          <input id="msgInput" autocomplete="off" placeholder="Message everyone">
+          <button type="button" id="plusBtn" title="Send a file">+</button>
           <button type="submit">Send</button>
+          <input type="file" id="fileInput" hidden>
         </form>
       </section>
       <aside>
         <h3>Online</h3>
+        <p class="hint">Tap a name to chat privately</p>
         <ul id="users"></ul>
-        <h3>Share a file</h3>
-        <input type="file" id="fileInput">
-        <progress id="progress" value="0" max="100" hidden></progress>
-        <div id="uploadStatus"></div>
         <h3>Shared files</h3>
         <ul id="files"></ul>
       </aside>
