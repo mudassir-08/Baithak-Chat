@@ -39,6 +39,18 @@ hotspot (or connect everyone to the same router), then run:
 npm install
 npm start
 ```
+## Android (Termux)
+1. Install Termux from F-Droid.
+2. Run:
+```bash
+pkg update && pkg install nodejs git -y
+git clone https://github.com/YOUR_USERNAME/localshare.git
+cd localshare && ./start.sh
+```
+3. Turn on your phone's hotspot. Other devices join it and open
+   `http://<hotspot IP>:3000` (often 192.168.43.1). On the phone itself, use
+   `http://localhost:3000`.
+
 
 ## Notes
 - Traffic is plain HTTP and not encrypted. Use it only on a network you trust.
