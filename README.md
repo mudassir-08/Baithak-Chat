@@ -1,4 +1,4 @@
-# LocalShare
+# Baithak
 
 Offline chat and file sharing over a local Wi-Fi hotspot. No internet needed.
 One laptop creates the hotspot and runs the server. Phones and computers join
