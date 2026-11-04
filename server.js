@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config();
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
@@ -8,7 +9,7 @@ const multer = require('multer');
 const { Server } = require('socket.io');
 
 const PORT = 3000;
-const ADMIN_PASSWORD = 'gtasan';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || crypto.randomBytes(4).toString('hex');
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
@@ -194,6 +195,7 @@ io.on('connection', (socket) => {
 // ---------- Start ----------
 server.listen(PORT, '0.0.0.0', () => {
   console.log('LocalShare running. Open one of these on a connected device:');
+  console.log(`Admin password (needed to delete files): ${ADMIN_PASSWORD}`);
   for (const list of Object.values(os.networkInterfaces())) {
     for (const i of list) {
       if (i.family === 'IPv4' && !i.internal) console.log(`  http://${i.address}:${PORT}`);
