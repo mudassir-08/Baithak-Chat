@@ -194,11 +194,18 @@ io.on('connection', (socket) => {
 
 // ---------- Start ----------
 server.listen(PORT, '0.0.0.0', () => {
-  console.log('LocalShare running. Open one of these on a connected device:');
+  console.log(`LocalShare running on port ${PORT}.`);
   console.log(`Admin password (needed to delete files): ${ADMIN_PASSWORD}`);
-  for (const list of Object.values(os.networkInterfaces())) {
-    for (const i of list) {
-      if (i.family === 'IPv4' && !i.internal) console.log(`  http://${i.address}:${PORT}`);
+  try {
+    for (const list of Object.values(os.networkInterfaces())) {
+      for (const i of list) {
+        if (i.family === 'IPv4' && !i.internal) console.log(`  http://${i.address}:${PORT}`);
+      }
     }
+  } catch (e) {
+    // Happens on Android/Termux, where listing network interfaces is blocked
+    console.log('Could not detect this device\'s IP address.');
+    console.log(`  On this device, open: http://localhost:${PORT}`);
+    console.log(`  Others: join the hotspot and open http://<hotspot IP>:${PORT}`);
   }
 });
