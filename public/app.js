@@ -10,6 +10,12 @@ const unread = {};
 
 const IMAGE_EXT = /\.(png|jpe?g|gif|webp)$/i;
 
+// ---------- Drawer (People & files) on phones ----------
+function closeMenu() { document.body.classList.remove('menu-open'); }
+$('menuBtn').onclick = () => document.body.classList.toggle('menu-open');
+$('asideClose').onclick = closeMenu;
+$('backdrop').onclick = closeMenu;
+
 $('nameInput').value = localStorage.getItem('name') || '';
 
 // ---------- Join ----------
@@ -205,7 +211,7 @@ socket.on('users', (list) => {
       li.textContent = u.name;
       li.className = 'clickable';
       li.title = 'Start a private chat';
-      li.onclick = () => openChat(u.id, u.name);
+      li.onclick = () => { openChat(u.id, u.name); closeMenu(); };
     }
     ul.appendChild(li);
   });

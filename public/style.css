@@ -23,7 +23,7 @@ button { background: #228be6; color: #fff; border: none; cursor: pointer; }
 button:hover { background: #1c7ed6; }
 
 /* ---------- Layout ---------- */
-#app { display: flex; flex-direction: column; height: 100vh; }
+#app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
 header {
   display: flex;
   justify-content: space-between;
@@ -160,8 +160,48 @@ button.del {
 }
 button.del:hover { background: #e03131; }
 
+/* Drawer controls are hidden on desktop */
+#menuBtn, #asideClose, #backdrop { display: none; }
+#menuBtn {
+  padding: 6px 12px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, .2);
+}
+
+/* ---------- Small screens (keep this LAST) ---------- */
 /* ---------- Small screens (keep this LAST) ---------- */
 @media (max-width: 700px) {
-  main { flex-direction: column; }
-  aside { width: 100%; max-height: 40%; border-left: none; border-top: 1px solid #dee2e6; }
+  #menuBtn { display: inline-block; }
+  main { flex-direction: row; }
+
+  aside {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 80%;
+    max-width: 320px;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform .25s ease;
+  }
+  body.menu-open aside {
+    transform: translateX(0);
+    box-shadow: -4px 0 16px rgba(0, 0, 0, .25);
+  }
+
+  #asideClose {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+    background: #868e96;
+  }
+
+  #backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, .4);
+  }
+  body.menu-open #backdrop { display: block; }
 }

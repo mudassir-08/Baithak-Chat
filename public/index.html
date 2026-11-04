@@ -8,17 +8,18 @@
 </head>
 <body>
   <div id="login">
-    <h1>LocalShare</h1>
-    <p>Local chat and file sharing. No internet needed.</p>
+    <h1>Gossip</h1>
+    <p>Gossip offine chat and file sharing. No internet needed.</p>
     <input id="nameInput" maxlength="20" placeholder="Your name" autofocus>
     <button id="joinBtn">Join</button>
   </div>
 
   <div id="app" hidden>
-    <header>
-      <strong>LocalShare</strong>
-      <span id="count"></span>
-    </header>
+     <header>
+       <strong>Jugaar Share</strong>
+       <span id="count"></span>
+       <button type="button" id="menuBtn">People &amp; files</button>
+     </header>
     <main>
       <section id="chat">
         <div id="tabs"></div>
@@ -32,6 +33,7 @@
         </form>
       </section>
       <aside>
+        <button type="button" id="asideClose">Close ✕</button>
         <h3>Online</h3>
         <p class="hint">Tap a name to chat privately</p>
         <ul id="users"></ul>
@@ -40,7 +42,7 @@
       </aside>
     </main>
   </div>
-
+  <div id="backdrop"></div>
   <script src="/socket.io/socket.io.js"></script>
   <script src="app.js"></script>
 </body>
