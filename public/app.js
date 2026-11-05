@@ -234,6 +234,29 @@ $('msgForm').addEventListener('submit', (e) => {
   $('msgInput').value = '';
 });
 
+// ---------- Quick emoji reactions ----------
+const emojiBtn = $('emojiBtn');
+const emojiPicker = $('emojiPicker');
+
+emojiBtn.onclick = () => {
+  emojiPicker.hidden = !emojiPicker.hidden;
+  emojiBtn.setAttribute('aria-expanded', String(!emojiPicker.hidden));
+};
+
+emojiPicker.addEventListener('click', (e) => {
+  const button = e.target.closest('[data-emoji]');
+  if (!button) return;
+
+  const input = $('msgInput');
+  const draft = input.value;
+  input.value = button.dataset.emoji;
+  $('msgForm').requestSubmit();
+  input.value = draft;
+  emojiPicker.hidden = true;
+  emojiBtn.setAttribute('aria-expanded', 'false');
+  input.focus();
+});
+
 // ---------- Sending files with the + button ----------
 $('plusBtn').onclick = () => $('fileInput').click();
 

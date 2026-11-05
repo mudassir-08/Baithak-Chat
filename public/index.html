@@ -26,9 +26,26 @@
         <div id="messages"></div>
         <div id="uploadStatus" hidden></div>
         <form id="msgForm">
+          <div id="emojiPicker" class="emoji-picker" role="group" aria-label="Quick emoji reactions" hidden>
+            <div class="emoji-picker-heading">
+              <strong>Quick reactions</strong>
+              <span>Tap an emoji to send</span>
+            </div>
+            <div class="emoji-grid">
+              <button type="button" class="emoji-option" data-emoji="👍" aria-label="Send thumbs up">👍</button>
+              <button type="button" class="emoji-option" data-emoji="👏" aria-label="Send applause">👏</button>
+              <button type="button" class="emoji-option" data-emoji="❤️" aria-label="Send heart">❤️</button>
+              <button type="button" class="emoji-option" data-emoji="😂" aria-label="Send laughing face">😂</button>
+              <button type="button" class="emoji-option" data-emoji="😮" aria-label="Send surprised face">😮</button>
+              <button type="button" class="emoji-option" data-emoji="🎉" aria-label="Send party popper">🎉</button>
+              <button type="button" class="emoji-option" data-emoji="🙏" aria-label="Send folded hands">🙏</button>
+              <button type="button" class="emoji-option" data-emoji="👎" aria-label="Send thumbs down">👎</button>
+            </div>
+          </div>
+          <button type="button" id="emojiBtn" aria-label="Open emoji reactions" aria-controls="emojiPicker" aria-expanded="false">😊</button>
           <input id="msgInput" autocomplete="off" placeholder="Message everyone">
           <button type="button" id="plusBtn" title="Send a file">+</button>
-          <button type="submit">Send</button>
+          <button type="submit" id="sendBtn">Send <span aria-hidden="true">➤</span></button>
           <input type="file" id="fileInput" hidden>
         </form>
       </section>
