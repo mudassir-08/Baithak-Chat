@@ -59,5 +59,8 @@ cd localshare && ./start.sh
 ## License
 MIT
 
-## Author
+## Authors
 Muhammad Owais
+Muhammad Shoaib
+Muhammad Mudassir Iqbal
+
