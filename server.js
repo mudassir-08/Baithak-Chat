@@ -1,6 +1,7 @@
 const express = require('express');
 require('dotenv').config();
 const http = require('http');
+const https = require('https');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -8,13 +9,35 @@ const crypto = require('crypto');
 const multer = require('multer');
 const { Server } = require('socket.io');
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
+const TLS_KEY_PATH = process.env.TLS_KEY_PATH;
+const TLS_CERT_PATH = process.env.TLS_CERT_PATH;
+if (Boolean(TLS_KEY_PATH) !== Boolean(TLS_CERT_PATH)) {
+  throw new Error('Set both TLS_KEY_PATH and TLS_CERT_PATH to enable HTTPS.');
+}
+const USE_HTTPS = Boolean(TLS_KEY_PATH && TLS_CERT_PATH);
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || crypto.randomBytes(4).toString('hex');
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
+const AUDIO_MIME_TYPES = {
+  '.aac': 'audio/aac',
+  '.m4a': 'audio/mp4',
+  '.mp3': 'audio/mpeg',
+  '.oga': 'audio/ogg',
+  '.ogg': 'audio/ogg',
+  '.opus': 'audio/ogg',
+  '.wav': 'audio/wav',
+  '.weba': 'audio/webm',
+  '.webm': 'audio/webm',
+};
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const app = express();
-const server = http.createServer(app);
+const server = USE_HTTPS
+  ? https.createServer({
+    key: fs.readFileSync(TLS_KEY_PATH),
+    cert: fs.readFileSync(TLS_CERT_PATH),
+  }, app)
+  : http.createServer(app);
 const io = new Server(server);
 
 const users = new Map(); // socket.id -> name
@@ -105,6 +128,8 @@ app.get('/download/:id', (req, res) => {
   const id = path.basename(req.params.id);
   const filePath = path.join(UPLOAD_DIR, id);
   if (!fs.existsSync(filePath)) return res.status(404).send('File not found');
+  const audioMimeType = AUDIO_MIME_TYPES[path.extname(id).toLowerCase()];
+  if (audioMimeType) return res.type(audioMimeType).sendFile(filePath);
   res.download(filePath, id.slice(id.indexOf('-') + 1));
 });
 
@@ -194,18 +219,19 @@ io.on('connection', (socket) => {
 
 // ---------- Start ----------
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`LocalShare running on port ${PORT}.`);
+  const protocol = USE_HTTPS ? 'https' : 'http';
+  console.log(`LocalShare running on ${protocol} port ${PORT}.`);
   console.log(`Admin password (needed to delete files): ${ADMIN_PASSWORD}`);
   try {
     for (const list of Object.values(os.networkInterfaces())) {
       for (const i of list) {
-        if (i.family === 'IPv4' && !i.internal) console.log(`  http://${i.address}:${PORT}`);
+        if (i.family === 'IPv4' && !i.internal) console.log(`  ${protocol}://${i.address}:${PORT}`);
       }
     }
   } catch (e) {
     // Happens on Android/Termux, where listing network interfaces is blocked
     console.log('Could not detect this device\'s IP address.');
-    console.log(`  On this device, open: http://localhost:${PORT}`);
-    console.log(`  Others: join the hotspot and open http://<hotspot IP>:${PORT}`);
+    console.log(`  On this device, open: ${protocol}://localhost:${PORT}`);
+    console.log(`  Others: join the hotspot and open ${protocol}://<hotspot IP>:${PORT}`);
   }
 });

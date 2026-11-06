@@ -18,7 +18,7 @@
      <header>
        <strong>Baithak</strong>
        <span id="count"></span>
-       <button type="button" id="menuBtn">People &amp; files</button>
+       <button type="button" id="menuBtn" aria-controls="peopleDrawer" aria-expanded="false">People &amp; files</button>
      </header>
     <main>
       <section id="chat">
@@ -26,6 +26,20 @@
         <div id="messages"></div>
         <div id="uploadStatus" hidden></div>
         <form id="msgForm">
+          <div id="voicePanel" class="voice-panel" hidden>
+            <div id="voiceRecordingStatus" class="voice-recording-status" hidden>
+              <span class="recording-dot" aria-hidden="true"></span>
+              <span id="voiceState">Recording</span>
+              <span id="voiceTimer">00:00</span>
+              <button type="button" id="stopRecordingBtn">Stop</button>
+            </div>
+            <div id="voicePreviewRow" class="voice-preview-row" hidden>
+              <audio id="voicePreview" controls></audio>
+              <button type="button" id="discardRecordingBtn" class="voice-secondary-btn">Discard</button>
+              <button type="button" id="sendRecordingBtn">Send voice</button>
+            </div>
+            <p id="voiceError" role="status" hidden></p>
+          </div>
           <div id="emojiPicker" class="emoji-picker" role="group" aria-label="Quick emoji reactions" hidden>
             <div class="emoji-picker-heading">
               <strong>Quick reactions</strong>
@@ -45,11 +59,14 @@
           <button type="button" id="emojiBtn" aria-label="Open emoji reactions" aria-controls="emojiPicker" aria-expanded="false">😊</button>
           <input id="msgInput" autocomplete="off" placeholder="Message everyone">
           <button type="button" id="plusBtn" title="Send a file">+</button>
+          <button type="button" id="audioUploadBtn" title="Upload an audio recording" aria-label="Upload an audio recording">♫</button>
+          <button type="button" id="recordBtn" title="Record a voice message" aria-label="Record a voice message">🎙</button>
           <button type="submit" id="sendBtn">Send <span aria-hidden="true">➤</span></button>
           <input type="file" id="fileInput" hidden>
+          <input type="file" id="audioFileInput" accept="audio/*,.m4a,.opus,.weba" hidden>
         </form>
       </section>
-      <aside>
+      <aside id="peopleDrawer">
         <button type="button" id="asideClose">Close ✕</button>
         <h3>Online</h3>
         <p class="hint">Tap a name to chat privately</p>

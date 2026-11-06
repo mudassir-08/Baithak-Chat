@@ -9,12 +9,22 @@ const chatNames = { all: 'Everyone' };
 const unread = {};
 
 const IMAGE_EXT = /\.(png|jpe?g|gif|webp)$/i;
+const AUDIO_EXT = /\.(aac|m4a|mp3|oga|ogg|opus|wav|weba|webm)$/i;
 
 // ---------- Drawer (People & files) on phones ----------
-function closeMenu() { document.body.classList.remove('menu-open'); }
-$('menuBtn').onclick = () => document.body.classList.toggle('menu-open');
-$('asideClose').onclick = closeMenu;
-$('backdrop').onclick = closeMenu;
+function setMenuOpen(open) {
+  document.body.classList.toggle('menu-open', open);
+  $('menuBtn').setAttribute('aria-expanded', String(open));
+}
+function closeMenu() { setMenuOpen(false); }
+$('menuBtn').addEventListener('click', () => {
+  setMenuOpen(!document.body.classList.contains('menu-open'));
+});
+$('asideClose').addEventListener('click', closeMenu);
+$('backdrop').addEventListener('click', closeMenu);
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeMenu();
+});
 
 $('nameInput').value = localStorage.getItem('name') || '';
 
@@ -88,6 +98,16 @@ function buildMessage(m) {
       img.className = 'preview';
       img.onclick = () => openImage(url);
       div.appendChild(img);
+    }
+
+    if (AUDIO_EXT.test(m.fileName)) {
+      const audio = document.createElement('audio');
+      audio.src = url;
+      audio.controls = true;
+      audio.preload = 'metadata';
+      audio.className = 'voice-player';
+      audio.setAttribute('aria-label', `Play audio message from ${m.name}`);
+      div.appendChild(audio);
     }
 
     const card = document.createElement('a');
@@ -259,9 +279,9 @@ emojiPicker.addEventListener('click', (e) => {
 
 // ---------- Sending files with the + button ----------
 $('plusBtn').onclick = () => $('fileInput').click();
+$('audioUploadBtn').onclick = () => $('audioFileInput').click();
 
-$('fileInput').addEventListener('change', () => {
-  const file = $('fileInput').files[0];
+function uploadFile(file, onComplete) {
   if (!file) return;
 
   const form = new FormData();
@@ -284,20 +304,182 @@ $('fileInput').addEventListener('change', () => {
   xhr.onload = () => {
     if (xhr.status === 200) {
       status.hidden = true;
+      if (onComplete) onComplete(true);
     } else {
       let msg = 'Upload failed';
       try { msg += ': ' + JSON.parse(xhr.responseText).error; } catch (e) {}
       status.textContent = msg;
       setTimeout(() => { status.hidden = true; }, 4000);
+      if (onComplete) onComplete(false);
     }
   };
   xhr.onerror = () => {
     status.textContent = 'Upload failed (network error)';
     setTimeout(() => { status.hidden = true; }, 4000);
+    if (onComplete) onComplete(false);
   };
   xhr.send(form);
-  $('fileInput').value = '';
-});
+}
+
+function handleFileSelection(event) {
+  const input = event.currentTarget;
+  const file = input.files[0];
+  if (!file) return;
+  uploadFile(file);
+  input.value = '';
+}
+
+$('fileInput').addEventListener('change', handleFileSelection);
+$('audioFileInput').addEventListener('change', handleFileSelection);
+
+// ---------- Voice recording ----------
+const recordBtn = $('recordBtn');
+const voicePanel = $('voicePanel');
+const voiceError = $('voiceError');
+const voiceRecordingStatus = $('voiceRecordingStatus');
+const voicePreviewRow = $('voicePreviewRow');
+const voicePreview = $('voicePreview');
+const sendRecordingBtn = $('sendRecordingBtn');
+let mediaRecorder = null;
+let recordingStream = null;
+let recordingChunks = [];
+let recordingTimer = null;
+let recordingStartedAt = 0;
+let recordingBlob = null;
+let recordingUrl = '';
+
+function formatRecordingTime(seconds) {
+  const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const remainder = (seconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${remainder}`;
+}
+
+function stopRecordingStream() {
+  if (recordingTimer) clearInterval(recordingTimer);
+  recordingTimer = null;
+  if (recordingStream) recordingStream.getTracks().forEach((track) => track.stop());
+  recordingStream = null;
+}
+
+function resetVoiceRecording() {
+  stopRecordingStream();
+  if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+  recordingUrl = '';
+  recordingBlob = null;
+  mediaRecorder = null;
+  recordingChunks = [];
+  voicePreview.removeAttribute('src');
+  voicePreview.load();
+  voicePanel.hidden = true;
+  voiceRecordingStatus.hidden = true;
+  voicePreviewRow.hidden = true;
+  voiceError.hidden = true;
+  voiceError.textContent = '';
+  recordBtn.disabled = false;
+  recordBtn.textContent = '🎙';
+  recordBtn.setAttribute('aria-label', 'Record a voice message');
+  recordBtn.title = 'Record a voice message';
+  sendRecordingBtn.disabled = false;
+}
+
+function stopVoiceRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    recordBtn.disabled = true;
+    mediaRecorder.stop();
+  }
+}
+
+async function startVoiceRecording() {
+  voicePanel.hidden = false;
+  voiceError.hidden = true;
+  if (!window.isSecureContext) {
+    voiceError.textContent = 'Microphone recording requires HTTPS on phones. Audio-file uploads still work over your local Wi-Fi.';
+    voiceError.hidden = false;
+    return;
+  }
+  if (!navigator.mediaDevices || !window.MediaRecorder) {
+    voiceError.textContent = 'This browser does not support voice recording. You can still upload an audio file.';
+    voiceError.hidden = false;
+    return;
+  }
+
+  recordBtn.disabled = true;
+  try {
+    recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mimeType = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4']
+      .find((type) => MediaRecorder.isTypeSupported(type));
+    const recorder = new MediaRecorder(recordingStream, mimeType ? { mimeType } : undefined);
+    mediaRecorder = recorder;
+    recordingChunks = [];
+    recorder.ondataavailable = (event) => {
+      if (event.data.size) recordingChunks.push(event.data);
+    };
+    recorder.onerror = () => {
+      voiceError.textContent = 'Recording failed. Please try again or upload an audio file.';
+      voiceError.hidden = false;
+      stopVoiceRecording();
+    };
+    recorder.onstop = () => {
+      stopRecordingStream();
+      recordingBlob = new Blob(recordingChunks, { type: recorder.mimeType || 'audio/webm' });
+      if (!recordingBlob.size) {
+        voiceError.textContent = 'No audio was recorded. Please try again.';
+        voiceError.hidden = false;
+        voiceRecordingStatus.hidden = true;
+        recordBtn.disabled = false;
+        recordBtn.textContent = '🎙';
+        recordBtn.setAttribute('aria-label', 'Record a voice message');
+        recordBtn.title = 'Record a voice message';
+        return;
+      }
+      recordingUrl = URL.createObjectURL(recordingBlob);
+      voicePreview.src = recordingUrl;
+      voiceRecordingStatus.hidden = true;
+      voicePreviewRow.hidden = false;
+      recordBtn.disabled = true;
+      recordBtn.textContent = '🎙';
+      recordBtn.setAttribute('aria-label', 'Voice recording ready');
+      recordBtn.title = 'Voice recording ready to send or discard';
+    };
+    recordingStartedAt = Date.now();
+    $('voiceTimer').textContent = '00:00';
+    voiceRecordingStatus.hidden = false;
+    voicePreviewRow.hidden = true;
+    recordBtn.textContent = '■';
+    recordBtn.setAttribute('aria-label', 'Stop recording');
+    recordBtn.title = 'Stop recording';
+    recorder.start();
+    recordingTimer = setInterval(() => {
+      $('voiceTimer').textContent = formatRecordingTime(Math.floor((Date.now() - recordingStartedAt) / 1000));
+    }, 1000);
+  } catch (error) {
+    stopRecordingStream();
+    voiceError.textContent = error.name === 'NotAllowedError'
+      ? 'Microphone access was denied. Allow microphone access in your browser, or upload an audio file.'
+      : `Could not start recording: ${error.message}`;
+    voiceError.hidden = false;
+    recordBtn.disabled = false;
+  }
+}
+
+recordBtn.onclick = () => {
+  if (mediaRecorder && mediaRecorder.state === 'recording') stopVoiceRecording();
+  else startVoiceRecording();
+};
+$('stopRecordingBtn').onclick = stopVoiceRecording;
+$('discardRecordingBtn').onclick = resetVoiceRecording;
+sendRecordingBtn.onclick = () => {
+  if (!recordingBlob) return;
+  const extension = recordingBlob.type.includes('ogg') ? 'ogg'
+    : recordingBlob.type.includes('mp4') ? 'm4a'
+      : 'webm';
+  const file = new File([recordingBlob], `voice-message-${Date.now()}.${extension}`, { type: recordingBlob.type });
+  sendRecordingBtn.disabled = true;
+  uploadFile(file, (success) => {
+    if (success) resetVoiceRecording();
+    else sendRecordingBtn.disabled = false;
+  });
+};
 
 // ---------- Shared files list (public files, with admin delete) ----------
 socket.on('files', (list) => {

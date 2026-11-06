@@ -7,6 +7,7 @@ the Wi-Fi and use it in the browser, with nothing to install on them.
 ## Features
 - Real-time group chat and private chat
 - Share files and pictures in the chat with the + button
+- Record voice messages in chat or upload audio recordings, with in-chat playback
 - Online users list
 - Admin-protected file deletion
 
@@ -37,8 +38,32 @@ hotspot (or connect everyone to the same router), then run:
 
 ```bash
 npm install
-npm start
+node server.js
 ```
+
+On the same computer, open `http://localhost:3000` to test voice recording;
+modern browsers allow microphone access on localhost. To record from phones or
+other devices on the local network, serve Baithak over HTTPS. This does not
+require an internet connection, but the certificate must be trusted by each
+device and include the server's IP address or hostname in its subject
+alternative names (SAN). Set both certificate paths before starting:
+
+```powershell
+$env:TLS_KEY_PATH = "C:\certs\baithak-key.pem"
+$env:TLS_CERT_PATH = "C:\certs\baithak-cert.pem"
+node server.js
+```
+
+On Linux or macOS, start the server with:
+
+```bash
+TLS_KEY_PATH=/path/to/key.pem TLS_CERT_PATH=/path/to/cert.pem node server.js
+```
+
+With both variables set, the server uses HTTPS on port 3000; without them it
+continues to use HTTP. The audio button uploads a recording from the device,
+and the microphone button records a voice message directly in the chat.
+
 ## Android (Termux)
 1. Install Termux from F-Droid.
 2. Run:
@@ -63,4 +88,3 @@ MIT
 Muhammad Owais
 Muhammad Shoaib
 Muhammad Mudassir Iqbal
-
